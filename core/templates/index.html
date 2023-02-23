@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %} {% trans 'HOME_PAGE' %} {% endblock title %}
+
+{% block content %}
+
+<hr>
+<div>
+    <span>{{ request.user }} -- </span> 
+    <a href="{% url 'logout' %}"><button>{% trans 'LOGOUT' %}</button></a>
+</div>
+
+<hr>
+<h4>{% trans 'ADD_NEW_NOTE' %}</h4>
+<form method="post" id="add-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="{% trans 'ADD' %}">
+</form>
+
+<hr>
+<h4>{% trans 'YOUR_NOTES' %}</h4>
+<div id="note"></div>
+{% for note in notes %}
+    <div>
+        <h5>
+            {{ note.headline }}
+            <span><button>{% trans 'EDIT' %}</button></span>
+            <span><button>{% trans 'DELETE' %}</button></span>
+        </h5>
+        {% if note.content %} <p>{{ note.content }}</p> {% endif %}
+    </div>
+{% endfor %}
+
+<hr>
+<script>
+    $('#add-form').on('submit', function(event){
+        event.preventDefault();
+        add_note();
+    });
+
+    function add_note() {
+        $.ajax({
+        url : "{% url 'add' %}",
+        type : "POST",
+        data : {
+            headline: $('#headline').val(),
+            content: $('#content').val(),
+            csrfmiddlewaretoken: $( "input[name='csrfmiddlewaretoken']" ).val()    
+        },
+        success : function(json) {
+            $('#headline').val('');
+            $('#content').val('');
+            let note = "<h5>"+json.headline+" <span><button>{% trans 'EDIT' %}</button></span> <span><button>{% trans 'DELETE' %}</button></span></h5>"
+            note += json.content ? "<p>" + json.content + "</p>" : ""
+            $("#note").prepend(note);
+            console.log(json);
+        },
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+    };
+</script>
+
+
+{% endblock content %}
