@@ -27,14 +27,13 @@ class Logout(LoginRequiredMixin, LogoutView):
     next_page = reverse_lazy('login')
     login_url = reverse_lazy('login')
 
-def add_note(request):
-    if request.method == 'POST':
+
+class AddNote(LoginRequiredMixin, View):
+    def post(self, request):
         headline = request.POST.get('headline')
         content = request.POST.get('content')
-
         note = Note(headline=headline, content=content, user=request.user)
         note.save()
-
         response_data = {
             'result': 'Add note successfully!',
             'id': note.id,
@@ -43,13 +42,6 @@ def add_note(request):
             'content': note.content,
             
         }
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-        return HttpResponse(
-            json.dumps(response_data),
-            content_type="application/json"
-        )
-    else:
-        return HttpResponse(
-            json.dumps({"nothing to see": "this isn't happening"}),
-            content_type="application/json"
-        )
+
