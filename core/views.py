@@ -2,17 +2,18 @@ import json
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import View
 from django.urls import reverse_lazy
 
 from core.forms import NoteForm
 from core.models import Note
 
 
-@login_required(login_url='login')
-def index(request):
-    return render(request, 'index.html', {
+class Home(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+    def get(self, request):
+        return render(request, 'index.html', {
         'notes': request.user.notes.all().order_by('-id'),
         'form': NoteForm(),
     })
