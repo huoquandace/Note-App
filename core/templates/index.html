@@ -5,65 +5,66 @@
 
 {% block content %}
 
-<hr>
-<div>
+<hr><div>
     <span>{{ request.user }} -- </span> 
     <a href="{% url 'logout' %}"><button>{% trans 'LOGOUT' %}</button></a>
 </div>
 
-<hr>
-<h4>{% trans 'ADD_NEW_NOTE' %}</h4>
+<hr><h4>{% trans 'ADD_NEW_NOTE' %}</h4>
 <form method="post" id="add-form">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="{% trans 'ADD' %}">
 </form>
 
-<hr>
-<h4>{% trans 'YOUR_NOTES' %}</h4>
-<div id="note"></div>
-{% for note in notes %}
-    <div>
-        <h5>
-            {{ note.headline }}
-            <span><button>{% trans 'EDIT' %}</button></span>
-            <span><button>{% trans 'DELETE' %}</button></span>
-        </h5>
-        {% if note.content %} <p>{{ note.content }}</p> {% endif %}
-    </div>
-{% endfor %}
+<hr><h4>{% trans 'YOUR_NOTES' %}</h4>
+<div id="notes"></div>
 
-<hr>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-    $('#add-form').on('submit', function(event){
-        event.preventDefault();
-        add_note();
-    });
+    $(document)
+    .ready(function () {
+        $.ajax({ type: "GET", url: "{% url 'list' %}", dataType: "json",
+            success: function (response) {
+                response.notes.forEach(function(note){
+                    $('#notes').append(`
+                        <div class="note">
+                            <h5>${ note.headline }</h5>
+                                <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
+                                <span><button>{% trans 'DELETE' %}</button></span>
+                            <p>${ note.content ? note.content : none }</p>
+                        </div>
+                    `)
+                });
+            }
+        }).done(function(response){
+            $('#notes').on('click', '.edit', function(e){
+                $('#add-form').children('p').find('input#headline').val($(this).parent().first().children('h5').text())
+                $('#add-form').children('p').find('textarea#content').val($(this).parent().first().children('p').text())
+            })
+        })
+        $('#add-form').submit(function(e){        
+            e.preventDefault();
+            var data = $('#add-form').serialize();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'add' %}",
+                data: data,
+                success: function (response) {
+                    var note = response
+                    $('#notes').append(`
+                        <div>
+                            <h5>${ note.headline }</h5>
+                                <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
+                                <span><button>{% trans 'DELETE' %}</button></span>
+                            <p>${ note.content ? note.content : none }</p>
+                        </div>
+                    `)
+                }
+            });
+        })
+    })
 
-    function add_note() {
-        $.ajax({
-        url : "{% url 'add' %}",
-        type : "POST",
-        data : {
-            headline: $('#headline').val(),
-            content: $('#content').val(),
-            csrfmiddlewaretoken: $( "input[name='csrfmiddlewaretoken']" ).val()    
-        },
-        success : function(json) {
-            $('#headline').val('');
-            $('#content').val('');
-            let note = "<h5>"+json.headline+" <span><button>{% trans 'EDIT' %}</button></span> <span><button>{% trans 'DELETE' %}</button></span></h5>"
-            note += json.content ? "<p>" + json.content + "</p>" : ""
-            $("#note").prepend(note);
-            console.log(json);
-        },
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    };
 </script>
 
 

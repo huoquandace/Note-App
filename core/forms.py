@@ -14,7 +14,7 @@ class NoteForm(ModelForm):
                 'required': True, 
                 'placeholder': 'Headline'
             }),
-            'content': forms.TextInput(attrs={
+            'content': forms.Textarea(attrs={
                 'id': 'content', 
                 'required': True, 
                 'placeholder': 'Content'

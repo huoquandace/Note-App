@@ -1,5 +1,5 @@
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,14 +10,6 @@ from core.forms import NoteForm
 from core.models import Note
 
 
-class Home(LoginRequiredMixin, View):
-    login_url = reverse_lazy('login')
-    def get(self, request):
-        return render(request, 'index.html', {
-        'notes': request.user.notes.all().order_by('-id'),
-        'form': NoteForm(),
-    })
-
 class Login(LoginView):
     template_name = 'login.html'
     redirect_authenticated_user = True
@@ -27,6 +19,10 @@ class Logout(LoginRequiredMixin, LogoutView):
     next_page = reverse_lazy('login')
     login_url = reverse_lazy('login')
 
+class NoteList(LoginRequiredMixin, View):
+    def get(self, request):
+        return JsonResponse({'notes': list(request.user.notes.all().order_by('-id').values())})
+
 
 class AddNote(LoginRequiredMixin, View):
     def post(self, request):
@@ -35,7 +31,6 @@ class AddNote(LoginRequiredMixin, View):
         note = Note(headline=headline, content=content, user=request.user)
         note.save()
         response_data = {
-            'result': 'Add note successfully!',
             'id': note.id,
             'user': note.user.username,
             'headline': note.headline,
