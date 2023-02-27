@@ -45,6 +45,22 @@ class AddNote(LoginRequiredMixin, View):
             
         }
         return HttpResponse(json.dumps(response_data), content_type="application/json")
+    
+class EditNote(LoginRequiredMixin, View):
+    def post(self, request):
+        id = request.POST.get('id')
+        note = Note.objects.get(id=id)
+        note.headline = request.POST.get('headline')
+        note.content = request.POST.get('content')
+        note.save()
+        response_data = {
+            'id': note.id,
+            'user': note.user.username,
+            'headline': note.headline,
+            'content': note.content,
+            
+        }
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 class DeleteNote(LoginRequiredMixin, View):

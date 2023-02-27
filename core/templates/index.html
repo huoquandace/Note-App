@@ -14,7 +14,7 @@
 <form method="post" id="add-form">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="{% trans 'ADD' %}">
+    <input type="submit" value="{% trans 'SUBMIT' %}">
 </form>
     
 <hr><h4>{% trans 'YOUR_NOTES' %}</h4>
@@ -38,24 +38,40 @@
                 });
             }
         }).done(function(response){
-            var method = null
+            var edit_note = null
             $('#add-form').submit(function(e){        
                 e.preventDefault();
                 var data = $('#add-form').serialize();
+                var url = "{% url 'add' %}";
+                if (edit_note != null) {
+                    url = "{% url 'edit' %}";
+                    data = {
+                        id: edit_note.attr('id'),
+                        headline: $('#add-form').children('p').find('input#headline').val(),
+                        content: $('#add-form').children('p').find('textarea#content').val(),
+                        csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()
+                    }
+                }
                 $.ajax({
                     type: "POST",
-                    url: "{% url 'add' %}",
+                    url: url,
                     data: data,
                     success: function (response) {
                         var note = response
-                        $('#notes').prepend(`
-                            <div class="note" id="${note.id}">
-                                <h5>${ note.headline }</h5>
-                                    <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
-                                    <span class="delete" ><button>{% trans 'DELETE' %}</button></span>
-                                <p>${ note.content ? note.content : none }</p>
-                            </div>
-                        `)
+                        if (edit_note == null){
+                            $('#notes').prepend(`
+                                <div class="note" id="${note.id}">
+                                    <h5>${ note.headline }</h5>
+                                        <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
+                                        <span class="delete" ><button>{% trans 'DELETE' %}</button></span>
+                                    <p>${ note.content ? note.content : none }</p>
+                                </div>
+                            `)
+                        } else {
+                            edit_note.children('h5').text(note.headline);
+                            edit_note.children('p').text(note.content);
+                            edit_note = null
+                        }
                     }
                 });
                 $(this).trigger('reset')
@@ -64,6 +80,7 @@
             $('#notes').on('click', '.edit', function(e){
                 $('#add-form').children('p').find('input#headline').val($(this).parent().first().children('h5').text())
                 $('#add-form').children('p').find('textarea#content').val($(this).parent().first().children('p').text())
+                edit_note = $(this).parent()
             })
 
             $('#notes').on('click', '.delete', function(e){

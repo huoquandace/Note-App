@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', views.Logout.as_view(), name='logout'),
 
     path('note/add/', views.AddNote.as_view(), name='add'),
+    path('note/edit/', views.EditNote.as_view(), name='edit'),
     path('note/delete/', views.DeleteNote.as_view(), name='delete'),
     path('note/list/', views.NoteList.as_view(), name='list'),
 ]
