@@ -16,7 +16,7 @@
     {{ form.as_p }}
     <input type="submit" value="{% trans 'ADD' %}">
 </form>
-
+    
 <hr><h4>{% trans 'YOUR_NOTES' %}</h4>
 <div id="notes"></div>
 
@@ -28,40 +28,62 @@
             success: function (response) {
                 response.notes.forEach(function(note){
                     $('#notes').append(`
-                        <div class="note">
+                        <div class="note" id="${note.id}">
                             <h5>${ note.headline }</h5>
                                 <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
-                                <span><button>{% trans 'DELETE' %}</button></span>
+                                <span class="delete" ><button>{% trans 'DELETE' %}</button></span>
                             <p>${ note.content ? note.content : none }</p>
                         </div>
                     `)
                 });
             }
         }).done(function(response){
+            var method = null
+            $('#add-form').submit(function(e){        
+                e.preventDefault();
+                var data = $('#add-form').serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'add' %}",
+                    data: data,
+                    success: function (response) {
+                        var note = response
+                        $('#notes').prepend(`
+                            <div class="note" id="${note.id}">
+                                <h5>${ note.headline }</h5>
+                                    <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
+                                    <span class="delete" ><button>{% trans 'DELETE' %}</button></span>
+                                <p>${ note.content ? note.content : none }</p>
+                            </div>
+                        `)
+                    }
+                });
+                $(this).trigger('reset')
+            })
+
             $('#notes').on('click', '.edit', function(e){
                 $('#add-form').children('p').find('input#headline').val($(this).parent().first().children('h5').text())
                 $('#add-form').children('p').find('textarea#content').val($(this).parent().first().children('p').text())
             })
-        })
-        $('#add-form').submit(function(e){        
-            e.preventDefault();
-            var data = $('#add-form').serialize();
-            $.ajax({
-                type: "POST",
-                url: "{% url 'add' %}",
-                data: data,
-                success: function (response) {
-                    var note = response
-                    $('#notes').append(`
-                        <div>
-                            <h5>${ note.headline }</h5>
-                                <span class="edit" ><button>{% trans 'EDIT' %}</button></span>
-                                <span><button>{% trans 'DELETE' %}</button></span>
-                            <p>${ note.content ? note.content : none }</p>
-                        </div>
-                    `)
+
+            $('#notes').on('click', '.delete', function(e){
+                if (confirm("Warning!\nDelete this note?") == true) {
+                    var note = $(this).parent()
+                    var data = {
+                        id: $(this).parent().attr('id'),
+                        csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'delete' %}",
+                        data: data,
+                        dataType: "json",
+                        success: function (response) {
+                            note.remove()
+                        }
+                    });
                 }
-            });
+            })
         })
     })
 

@@ -10,6 +10,14 @@ from core.forms import NoteForm
 from core.models import Note
 
 
+
+class Home(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'index.html', {
+        'notes': request.user.notes.all().order_by('-id'),
+        'form': NoteForm(),
+    })
+
 class Login(LoginView):
     template_name = 'login.html'
     redirect_authenticated_user = True
@@ -17,7 +25,6 @@ class Login(LoginView):
 
 class Logout(LoginRequiredMixin, LogoutView):
     next_page = reverse_lazy('login')
-    login_url = reverse_lazy('login')
 
 class NoteList(LoginRequiredMixin, View):
     def get(self, request):
@@ -40,3 +47,11 @@ class AddNote(LoginRequiredMixin, View):
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
+class DeleteNote(LoginRequiredMixin, View):
+    def post(self, request):
+        id = request.POST.get('id')
+        Note.objects.get(id=id).delete()
+        response_data = {
+            'status': 'success',
+        }
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
