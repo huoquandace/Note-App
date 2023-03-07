@@ -14,6 +14,7 @@ services:
       - .env
     depends_on:
       - postgres
+      - mysql
     restart: always
 
   postgres:
