@@ -43,7 +43,7 @@ services:
 
   adminer:
     image: adminer
-    container_name: mysql_container
+    container_name: adminer_container
     restart: always
     ports:
       - 8080:8080
