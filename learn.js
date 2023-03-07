@@ -74,8 +74,12 @@
     - pain: Callback hell
     - new Promise
     - Promise methods
+    19. Fetch
+    - fake: https://jsonplaceholder.typicode.com/
+    - JSON Server
 */
 
+/* 
 var users = [{id: 1,name: 'John Doe',},{id: 2,name: 'Jackson',},{id: 3,name: 'Alice',}]
 
 var comments = [{id: 1,text: 'This is a comment 1',user_id: 1,},{id: 2,text: 'This is a comment 2',user_id: 1,},{id: 3,text: 'This is a comment 3',user_id: 3,}]
@@ -99,5 +103,14 @@ getComments()
             ul.innerHTML += `<li>${user.name}: ${comment.text}</li>`
         });
     })
+ */
 
+var API = 'https://jsonplaceholder.typicode.com/posts'
+fetch(API)
+  .then(response => response.json())
+  .then(posts => {
+    var html = posts.map(post => `<li><h4>${post.title}</h4><p>${post.body}</p></li>`).join('')
+    document.querySelector('ul').innerHTML = html
+  })
+  .catch(err => console.error(err))
 
