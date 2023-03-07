@@ -24,21 +24,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
-
-  mysql:
-    image: mysql
-    container_name: mysql_container
-    ports:
-      - "3307:3307"
-    volumes:
-      - db_data:/var/lib/mysql
-      - .:/test-app
-    environment:
-      - MYSQL_ROOT_PASSWORD=mysql
-      - MYSQL_DATABASE=mysql
-      - MYSQL_USER=mysql
-      - MYSQL_PASSWORD=mysql
-
+      
   adminer:
     image: adminer
     restart: always
